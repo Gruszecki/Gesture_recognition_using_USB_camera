@@ -114,8 +114,8 @@ def nn_go():
     #############################################################
     # Hand recognition training
 
-    layer_conv2d_2_1 = keras.layers.Conv2D(32, (4, 4), input_shape=(38, 38, 1), activation=tf.nn.relu)
-    layer_conv2d_2_2 = keras.layers.Conv2D(64, (4, 4), activation=tf.nn.relu)
+    layer_conv2d_2_1 = keras.layers.Conv2D(8, (4, 4), input_shape=(38, 38, 1), activation=tf.nn.relu)
+    layer_conv2d_2_2 = keras.layers.Conv2D(16, (4, 4), activation=tf.nn.relu)
     layer_maxpooling2d_2_1 = keras.layers.MaxPooling2D(pool_size=(1, 1))
     layer_flatten_2_1 = keras.layers.Flatten()
     layer_dense_2_1 = keras.layers.Dense(50, activation=tf.nn.relu)
