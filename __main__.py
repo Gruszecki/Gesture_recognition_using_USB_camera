@@ -17,7 +17,45 @@ pixels_to_check = [[80, 60], [80, 79], [61, 79], [99, 79], [61, 60], [99, 60], [
 bright_pixel = [80, 60]     # Bright pixel in default ROI (one of pixels_to_check if any)
 lowest_pixel = [80, 79]     # The lowest bright pixel in hand
 
+hand_present_flag = False
+hand_brightnes = 160
+
 frame_out = np.array([[0]*(int(width_len/factor))]*int((height_len/factor)), dtype=np.uint8)    # Table with new dimension
+
+def find_lowest(cur_pixel):
+    # pixel[1] is x (down)
+    global hand_present_flag, lowest_pixel
+    step = 3
+    if frame_out[cur_pixel[1], cur_pixel[0]] > hand_brightnes:
+        if cur_pixel[1] >= 119 - step:
+            lowest_pixel[1] = cur_pixel[1]
+            lowest_pixel[0] = cur_pixel[0]
+            return lowest_pixel
+        elif cur_pixel[0] >= 159 - 19 or cur_pixel[0] <= 0 + 19:
+            cur_pixel[0] = 80
+        elif frame_out[cur_pixel[1] + step, cur_pixel[0]] >= hand_brightnes:
+            cur_pixel[1] = cur_pixel[1] + step
+        elif frame_out[cur_pixel[1] + step, cur_pixel[0] + step] >= hand_brightnes:
+            cur_pixel[1] = cur_pixel[1] + step
+            cur_pixel[0] = cur_pixel[0] + step
+        elif frame_out[cur_pixel[1] + step, cur_pixel[0] - step] >= hand_brightnes:
+            cur_pixel[1] = cur_pixel[1] + step
+            cur_pixel[0] = cur_pixel[0] - step
+        else:
+            lowest_pixel[1] = cur_pixel[1]
+            lowest_pixel[0] = cur_pixel[0]
+            return lowest_pixel
+    else:
+        if frame_out[cur_pixel[1] - step*2, cur_pixel[0]] >= hand_brightnes:
+            cur_pixel[1] = cur_pixel[1] - step*2
+        elif frame_out[cur_pixel[1] - step*2, cur_pixel[0] + step*2] >= hand_brightnes:
+            cur_pixel[1] = cur_pixel[1] - step*2
+            cur_pixel[0] = cur_pixel[0] + step*2
+        elif frame_out[cur_pixel[1] - step*2, cur_pixel[0] - step*2] >= hand_brightnes:
+            cur_pixel[1] = cur_pixel[1] - step*2
+            cur_pixel[0] = cur_pixel[0] - step*2
+        else:
+            hand_present_flag = False
 
 while True:
     check, frame = video.read()     # Create a frame object
@@ -27,10 +65,19 @@ while True:
         for j in range(0, width_len, factor):
             frame_out[int((i/factor))][int(j/factor)] = gray[i][j]
 
-    for pixel in pixels_to_check:                   # Searching for bright pixel
-        if frame_out[pixel[1], pixel[0]] > 120:
-            bright_pixel = pixel
-            break
+    cv2.rectangle(frame_out, (60, 40), (100, 80), 255, 1)
+    if hand_present_flag:
+        find_lowest(bright_pixel)
+        cv2.circle(frame_out, (lowest_pixel[0], lowest_pixel[1]), 5, 0, 3)
+    else:
+        for pixel in pixels_to_check:                   # Searching for bright pixel
+            if frame_out[pixel[1], pixel[0]] >= hand_brightnes:
+                bright_pixel = pixel
+                lowest_pixel = pixel
+                hand_present_flag = True
+                find_lowest(bright_pixel)
+                break
+
 
     # for pixel in pixels_to_check:
     #     frame_extract = cv2.getRectSubPix(frame_out, (38, 38), (dim[0], dim[1]))  # Extracting frame
