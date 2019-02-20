@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 nn = __import__('neural_network')
 
-# model_h, model_g = nn.nn_go()
+model_h, model_g = nn.nn_go()
 
 # Create an object.
 video = cv2.VideoCapture(0)
@@ -16,7 +16,6 @@ factor = 4                  # Factor used to change dimension
 pixels_to_check = [[80, 60], [80, 79], [61, 79], [99, 79], [61, 60], [99, 60], [80, 41], [61, 41], [99, 41]]
 bright_pixel = [80, 60]     # Bright pixel in default ROI (one of pixels_to_check if any)
 lowest_pixel = [80, 79]     # The lowest bright pixel in hand
-
 hand_present_flag = False
 hand_brightnes = 160
 
@@ -30,7 +29,6 @@ def find_lowest(cur_pixel):
         if cur_pixel[1] >= 119 - step:
             lowest_pixel[1] = cur_pixel[1]
             lowest_pixel[0] = cur_pixel[0]
-            return lowest_pixel
         elif cur_pixel[0] >= 159 - 19 or cur_pixel[0] <= 0 + 19:
             cur_pixel[0] = 80
         elif frame_out[cur_pixel[1] + step, cur_pixel[0]] >= hand_brightnes:
@@ -44,8 +42,9 @@ def find_lowest(cur_pixel):
         else:
             lowest_pixel[1] = cur_pixel[1]
             lowest_pixel[0] = cur_pixel[0]
-            return lowest_pixel
     else:
+        if cur_pixel[1]-step*2 < 20:
+            cur_pixel[1] = 20 + step*2
         if frame_out[cur_pixel[1] - step*2, cur_pixel[0]] >= hand_brightnes:
             cur_pixel[1] = cur_pixel[1] - step*2
         elif frame_out[cur_pixel[1] - step*2, cur_pixel[0] + step*2] >= hand_brightnes:
@@ -55,6 +54,8 @@ def find_lowest(cur_pixel):
             cur_pixel[1] = cur_pixel[1] - step*2
             cur_pixel[0] = cur_pixel[0] - step*2
         else:
+            cur_pixel[1] = 79
+            cur_pixel[0] = 80
             hand_present_flag = False
 
 while True:
@@ -65,11 +66,33 @@ while True:
         for j in range(0, width_len, factor):
             frame_out[int((i/factor))][int(j/factor)] = gray[i][j]
 
-    cv2.rectangle(frame_out, (60, 40), (100, 80), 255, 1)
+    cv2.rectangle(frame_out, (0, 0), (60, 15), 0, -1)
+
     if hand_present_flag:
         find_lowest(bright_pixel)
-        cv2.circle(frame_out, (lowest_pixel[0], lowest_pixel[1]), 5, 0, 3)
+        cv2.rectangle(frame_out, (lowest_pixel[0]-20, lowest_pixel[1]-40), (lowest_pixel[0]+20, lowest_pixel[1]), 255, 1)
+
+        frame_extract = cv2.getRectSubPix(frame_out, (38, 38), (lowest_pixel[0], lowest_pixel[1]-19))  # Extracting frame
+        frame_extract.resize([1, 38, 38, 1])
+        prediction_result_h = model_h.predict(frame_extract)  # Prediction for hand/no hand
+
+        if prediction_result_h[0][0] < prediction_result_h[0][1] and prediction_result_h[0][1] >= 0.9:
+            prediction_result_g = model_g.predict(frame_extract)  # Prediction for gestures
+            if prediction_result_g[0][0] >= 0.7:
+                prediction_text = "Fist"
+            elif prediction_result_g[0][1] >= 0.7:
+                prediction_text = "Palm"
+            elif prediction_result_g[0][2] >= 0.7:
+                prediction_text = "Finger"
+            else:
+                prediction_text = "Sth went wrong"
+        else:
+            prediction_text = "No hand"
+
+        cv2.putText(frame_out, prediction_text, (0, 10), fontFace=cv2.FONT_HERSHEY_PLAIN, fontScale=0.9, color=255, thickness=1)
     else:
+        prediction_text = "Activate"
+        cv2.putText(frame_out, prediction_text, (0, 10), fontFace=cv2.FONT_HERSHEY_PLAIN, fontScale=0.9, color=255, thickness=1)
         for pixel in pixels_to_check:                   # Searching for bright pixel
             if frame_out[pixel[1], pixel[0]] >= hand_brightnes:
                 bright_pixel = pixel
@@ -78,6 +101,7 @@ while True:
                 find_lowest(bright_pixel)
                 break
 
+        cv2.rectangle(frame_out, (lowest_pixel[0] - 20, lowest_pixel[1] - 40), (lowest_pixel[0] + 20, lowest_pixel[1]), 255, 1)
 
     # for pixel in pixels_to_check:
     #     frame_extract = cv2.getRectSubPix(frame_out, (38, 38), (dim[0], dim[1]))  # Extracting frame
