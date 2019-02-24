@@ -1,8 +1,14 @@
 import cv2
 import numpy as np
+from tensorflow import keras
 nn = __import__('neural_network')
 
-model_h, model_g = nn.nn_go()
+# Generating models
+# model_h, model_g = nn.nn_go()
+
+# Recreating saved models, including weights and optimizer
+model_h = keras.models.load_model('F:\\PyCharm 5.0.4\\PROJEKTY\\NeutralNetwork\\model_h.h5')
+model_g = keras.models.load_model('F:\\PyCharm 5.0.4\\PROJEKTY\\NeutralNetwork\\model_g.h5')
 
 # Create an object.
 video = cv2.VideoCapture(0)

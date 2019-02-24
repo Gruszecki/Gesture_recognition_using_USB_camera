@@ -132,12 +132,15 @@ def nn_go():
         layer_dense_2_3
     ])
 
-    model_h.compile(optimizer=tf.train.AdamOptimizer(),
+    model_h.compile(optimizer=keras.optimizers.Adam(),
                     loss='sparse_categorical_crossentropy',
                     metrics=['accuracy'])
 
     train_hand.resize([7937, 38, 38, 1])
     model_h.fit(train_hand, train_hand_labels, epochs=1)
+
+    # Saving entire model to a HDF5 file
+    model_h.save('F:\\PyCharm 5.0.4\\PROJEKTY\\NeutralNetwork\\model_h.h5')
 
     ##############################################################
     # Gesture recognition training
@@ -160,13 +163,16 @@ def nn_go():
         layer_dense_3
     ])
 
-    model_g.compile(optimizer=tf.train.AdamOptimizer(),
+    model_g.compile(optimizer=keras.optimizers.Adam(),
                     loss='sparse_categorical_crossentropy',
                     metrics=['accuracy'])
 
     train_images.resize([1937, 38, 38, 1])
     img_test.resize([9, 38, 38, 1])
     model_g.fit(train_images, train_images_labels, epochs=1)
+
+    # Saving entire model to a HDF5 file
+    model_g.save('F:\\PyCharm 5.0.4\\PROJEKTY\\NeutralNetwork\\model_g.h5')
 
     #############################################################
     # Summary
