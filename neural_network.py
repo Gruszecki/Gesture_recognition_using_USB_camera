@@ -10,7 +10,7 @@ import re
 def nn_go():
     print("Preparing arrays...")
     train_images_folder_path = "C:\\Users\\wojte\\Desktop\\Praca_inz\\train_images"
-    train_images_paths = glob(os.path.join(train_images_folder_path, "*.png"))
+    train_images_paths = glob(os.path.join(train_images_folder_path, "*.jpg"))
     train_images = np.array([[[0] * 38] * 38] * 1937, dtype=np.uint8)
     train_images_labels = np.array([0] * 1937)
     train_noise_folder_path = "C:\\Users\\wojte\\Desktop\\Praca_inz\\train_noise"
@@ -18,17 +18,6 @@ def nn_go():
     train_noise = np.array([[[0]*38]*38]*6000, dtype=np.uint8)
     train_hand = np.array([[[0]*38]*38]*7937, dtype=np.uint8)
     train_hand_labels = np.array([0]*7937)
-    # test_images_folder_path = "C:\\Users\\wojte\\Desktop\\Praca_inz\\test_images"
-    # test_images_paths = glob(os.path.join(test_images_folder_path, "*.jpg"))
-    # test_images = np.array([[[0]*38]*38]*727, dtype=np.uint8)
-    # test_images_labels = np.array([0]*727)
-    # test_noise_folder_path = "C:\\Users\\wojte\\Desktop\\Praca_inz\\test_noise"
-    # test_noise_paths = glob(os.path.join(test_noise_folder_path, "*.jpg"))
-    # test_noise = np.array([[[0]*38]*38]*727, dtype=np.uint8)
-    # test_noise_labels = np.array([0]*80)
-    # test_hand = np.array([[[0]*38]*38]*807, dtype=np.uint8)
-    # test_hand_labels = np.array([0]*807)
-    # class_names = ['Fist', 'Palm', 'Gun', 'Two', 'Thumb_Left', 'Satan', 'Point_Thumb', 'Little', 'Hand_Left', 'Three']
 
     img_path = "C:\\Users\\wojte\\Desktop\\Praca_inz\\test_images"
     img_paths = glob(os.path.join(img_path, "*.jpg"))
@@ -45,12 +34,10 @@ def nn_go():
     print("Sorting paths...")
     train_images_paths.sort(key=natural_keys)
     train_noise_paths.sort(key=natural_keys)
-    # test_images_paths.sort(key=natural_keys)
-    # test_noise_paths.sort(key=natural_keys)
     img_paths.sort(key=natural_keys)
 
-    print("Converting images to numpy...")
     # Converting train images from jpg to numpy
+    print("Converting images to numpy...")
     for i in range(len(train_images_paths)):
         train_images[i] = cv2.cvtColor(cv2.imread(train_images_paths[i]), cv2.COLOR_BGR2GRAY)
         train_hand[i] = train_images[i]
@@ -60,21 +47,12 @@ def nn_go():
         train_noise[i] = cv2.cvtColor(cv2.imread(train_noise_paths[i]), cv2.COLOR_BGR2GRAY)
         train_hand[1937+i] = train_noise[i]
 
-    # # Converting test images from jpg to numpy
-    # for i in range(len(test_images_paths)):
-    #     test_images[i] = cv2.cvtColor(cv2.imread(test_images_paths[i]), cv2.COLOR_BGR2GRAY)
-    #     test_hand[i] = test_images[i]
-    #
-    # # Converting test noise from jpg to numpy
-    # for i in range(len(test_noise_paths)):
-    #     test_noise[i] = cv2.cvtColor(cv2.imread(test_noise_paths[i]), cv2.COLOR_BGR2GRAY)
-    #     test_hand[727+i] = test_noise[i]
-
+    # Converting test images from jpg to numpy
     for i in range(len(img_paths)):
         img_test[i] = cv2.cvtColor(cv2.imread(img_paths[i]), cv2.COLOR_BGR2GRAY)
 
-    print("Creating labels...")
     # Creating labels for train images: numpy array with values 0-2
+    print("Creating labels...")
     label_value = 0
     for i in range(len(train_images_labels)):
         if i == 739 or i == 1345:
@@ -88,31 +66,13 @@ def nn_go():
             label_value = 0
         train_hand_labels[i] = label_value
 
-    # # Creating labels for test images: numpy array with values 0-9
-    # label_value = 0
-    # for i in range(len(test_images_labels)):
-    #     if i == 79 or i == 129 or i == 203 or i == 288 or i == 349 or i == 440 or i == 518 or i == 595 or i == 673:
-    #         label_value = label_value + 1
-    #     test_images_labels[i] = label_value
-    #
-    # # Creating labels for test hand: numpy array with values 0-1
-    # label_value = 1
-    # for i in range(len(test_hand_labels)):
-    #     if i == 727:
-    #         label_value = 0
-    #     test_hand_labels[i] = label_value
-
     print("Scaling data...")
     train_images = train_images / 255.0
-    # train_noise = train_noise / 255.0
     train_hand = train_hand / 255.0
-    # test_images = test_images / 255.0
-    # test_noise = test_noise / 255.0
-    # test_hand = test_hand / 255.0
 
-    print("Training...")
     #############################################################
     # Hand recognition training
+    print("Training...")
 
     layer_conv2d_2_1 = keras.layers.Conv2D(8, (4, 4), input_shape=(38, 38, 1), activation=tf.nn.relu)
     layer_conv2d_2_2 = keras.layers.Conv2D(16, (4, 4), activation=tf.nn.relu)
@@ -140,7 +100,7 @@ def nn_go():
     model_h.fit(train_hand, train_hand_labels, epochs=1)
 
     # Saving entire model to a HDF5 file
-    model_h.save('F:\\PyCharm 5.0.4\\PROJEKTY\\NeutralNetwork\\model_h.h5')
+    # model_h.save('F:\\PyCharm 5.0.4\\PROJEKTY\\NeutralNetwork\\model_h.h5')
 
     ##############################################################
     # Gesture recognition training
@@ -172,24 +132,13 @@ def nn_go():
     model_g.fit(train_images, train_images_labels, epochs=1)
 
     # Saving entire model to a HDF5 file
-    model_g.save('F:\\PyCharm 5.0.4\\PROJEKTY\\NeutralNetwork\\model_g.h5')
+    # model_g.save('F:\\PyCharm 5.0.4\\PROJEKTY\\NeutralNetwork\\model_g.h5')
 
     #############################################################
     # Summary
 
     model_h.summary()
     model_g.summary()
-
-    # # Saving weights
-    # weights_file = open("C:\\Users\\wojte\\Desktop\\Praca_inz\\weights.txt", 'w')
-    # weights_file.write(str(layer_conv2d_1.get_weights()))
-    # weights_file.write(str(layer_conv2d_2.get_weights()))
-    # weights_file.write(str(layer_maxpooling2d.get_weights()))
-    # weights_file.write(str(layer_flatten.get_weights()))
-    # weights_file.write(str(layer_dense_1.get_weights()))
-    # weights_file.write(str(layer_dense_2.get_weights()))
-    # weights_file.write(str(layer_dense_3.get_weights()))
-    # weights_file.close()
 
     ##############################################################
     # Tests

@@ -109,30 +109,6 @@ while True:
 
         cv2.rectangle(frame_out, (lowest_pixel[0] - 20, lowest_pixel[1] - 40), (lowest_pixel[0] + 20, lowest_pixel[1]), 255, 1)
 
-    # for pixel in pixels_to_check:
-    #     frame_extract = cv2.getRectSubPix(frame_out, (38, 38), (dim[0], dim[1]))  # Extracting frame
-    #     frame_extract.resize([1, 38, 38, 1])
-    #     prediction_result_h = model_h.predict(frame_extract)  # Prediction for hand/no hand
-    #
-    #     if prediction_result_h[0][0] < prediction_result_h[0][1] and prediction_result_h[0][1] >= 0.8:
-    #         cv2.rectangle(frame_out, (dim[0]-20, dim[1]-20), (dim[0]+20, dim[1]+20), 255, 1)
-    #
-    #         prediction_result_g = model_g.predict(frame_extract)  # Prediction for gestures
-    #         if prediction_result_g[0][0] >= 0.7:
-    #             prediction_text = "Fist"
-    #         elif prediction_result_g[0][1] >= 0.7:
-    #             prediction_text = "Palm"
-    #         elif prediction_result_g[0][2] >= 0.7:
-    #             prediction_text = "Finger"
-    #         else:
-    #             prediction_text = "Sth went wrong"
-    #
-    #         break
-    #     else:
-    #         prediction_text = "No hand"
-
-    # cv2.rectangle(frame_out, (0, 0), (60, 15), 0, -1)
-    # cv2.putText(frame_out, prediction_text, (0, 10), fontFace=cv2.FONT_HERSHEY_PLAIN, fontScale=0.9, color=255, thickness=1)
     cv2.imshow("Hello World!", frame_out)  # Show the frame
     key = cv2.waitKey(1)  # For playing
 
