@@ -6,18 +6,17 @@ import os
 import cv2
 import re
 
-
 def nn_go():
     print("Preparing arrays...")
     train_images_folder_path = "C:\\Users\\wojte\\Desktop\\Praca_inz\\train_images"
     train_images_paths = glob(os.path.join(train_images_folder_path, "*.jpg"))
-    train_images = np.array([[[0] * 38] * 38] * 1937, dtype=np.uint8)
-    train_images_labels = np.array([0] * 1937)
+    train_images = np.array([[[0] * 38] * 38] * 1345, dtype=np.uint8)
+    train_images_labels = np.array([0] * 1345)
     train_noise_folder_path = "C:\\Users\\wojte\\Desktop\\Praca_inz\\train_noise"
     train_noise_paths = glob(os.path.join(train_noise_folder_path, "*.jpg"))
     train_noise = np.array([[[0]*38]*38]*6000, dtype=np.uint8)
-    train_hand = np.array([[[0]*38]*38]*7937, dtype=np.uint8)
-    train_hand_labels = np.array([0]*7937)
+    train_hand = np.array([[[0]*38]*38]*7345, dtype=np.uint8)
+    train_hand_labels = np.array([0]*7345)
 
     img_path = "C:\\Users\\wojte\\Desktop\\Praca_inz\\test_images"
     img_paths = glob(os.path.join(img_path, "*.jpg"))
@@ -45,7 +44,7 @@ def nn_go():
     # Converting noise from jpg to numpy
     for i in range(len(train_noise_paths)):
         train_noise[i] = cv2.cvtColor(cv2.imread(train_noise_paths[i]), cv2.COLOR_BGR2GRAY)
-        train_hand[1937+i] = train_noise[i]
+        train_hand[1345+i] = train_noise[i]
 
     # Converting test images from jpg to numpy
     for i in range(len(img_paths)):
@@ -55,14 +54,14 @@ def nn_go():
     print("Creating labels...")
     label_value = 0
     for i in range(len(train_images_labels)):
-        if i == 739 or i == 1345:
+        if i == 739:
             label_value = label_value + 1
         train_images_labels[i] = label_value
 
     # Creating labels for train hand: numpy array with values 0-1
     label_value = 1
     for i in range(len(train_hand_labels)):
-        if i == 1937:
+        if i == 1345:
             label_value = 0
         train_hand_labels[i] = label_value
 
@@ -96,11 +95,11 @@ def nn_go():
                     loss='sparse_categorical_crossentropy',
                     metrics=['accuracy'])
 
-    train_hand.resize([7937, 38, 38, 1])
+    train_hand.resize([7345, 38, 38, 1])
     model_h.fit(train_hand, train_hand_labels, epochs=1)
 
     # Saving entire model to a HDF5 file
-    # model_h.save('F:\\PyCharm 5.0.4\\PROJEKTY\\NeutralNetwork\\model_h.h5')
+    # model_h.save('F:\\PyCharm 5.0.4\\PROJEKTY\\ExternalCamera\\model_h.h5')
 
     ##############################################################
     # Gesture recognition training
@@ -127,12 +126,12 @@ def nn_go():
                     loss='sparse_categorical_crossentropy',
                     metrics=['accuracy'])
 
-    train_images.resize([1937, 38, 38, 1])
+    train_images.resize([1345, 38, 38, 1])
     img_test.resize([9, 38, 38, 1])
     model_g.fit(train_images, train_images_labels, epochs=1)
 
     # Saving entire model to a HDF5 file
-    # model_g.save('F:\\PyCharm 5.0.4\\PROJEKTY\\NeutralNetwork\\model_g.h5')
+    # model_g.save('F:\\PyCharm 5.0.4\\PROJEKTY\\ExternalCamera\\model_g.h5')
 
     #############################################################
     # Summary
