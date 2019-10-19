@@ -1,7 +1,5 @@
 import cv2
 import numpy as np
-import os
-from glob import glob
 from tensorflow import keras
 
 nn = __import__('neural_network')
@@ -76,7 +74,7 @@ def find_lowest(cur_pixel):
             hand_present_flag = False
 
 # img = cv2.imread(img_paths[img_counter])        # IMG omg
-# cv2.imshow('image', img)                        # IMG omg
+# qqcv2.imshow('image', img)                        # IMG omg
 
 gi.init("C:\\Users\\wojte\\Desktop\\Praca_inz\\gallery")
 
