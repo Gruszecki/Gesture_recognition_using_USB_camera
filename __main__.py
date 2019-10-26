@@ -1,6 +1,9 @@
+from __future__ import print_function
 import cv2
 import numpy as np
 from tensorflow import keras
+from pycaw.pycaw import AudioUtilities, ISimpleAudioVolume
+import time
 
 # nn = __import__('neural_network')
 # gi = __import__('gallery_interface')
@@ -25,7 +28,29 @@ factor = 4  # Factor used to change dimension
 frame_out = np.array([[0] * (int(width_len / factor))] * int((height_len / factor)),
                      dtype=np.uint8)  # Table with new dimension
 
+def increase():
+    print("Volume increasing.")
+    for session in sessions:
+        volume = session._ctl.QueryInterface(ISimpleAudioVolume)
+        if volume.GetMasterVolume() < 0.9:
+            volume.SetMasterVolume(volume.GetMasterVolume() + 0.1, None)
+
+def decrease():
+    print("Volume decreasing.")
+    for session in sessions:
+        volume = session._ctl.QueryInterface(ISimpleAudioVolume)
+        if volume.GetMasterVolume() > 0.1:
+            volume.SetMasterVolume(volume.GetMasterVolume() - 0.1, None)
+
+def mute():
+    print("Mute ON/OFF")
+    for session in sessions:
+        volume = session._ctl.QueryInterface(ISimpleAudioVolume)
+        volume.SetMute(not volume.GetMute(), None)
+
+
 while True:
+    sessions = AudioUtilities.GetAllSessions()
     check, frame = video.read()  # Create a frame object
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)  # Converting to grayscale
 
@@ -45,12 +70,16 @@ while True:
         prediction_result_g = model_g.predict(frame_extract)  # Prediction for gestures
         if prediction_result_g[0][0] >= 0.7:
             prediction_text = "Fist"
+            decrease()
         elif prediction_result_g[0][1] >= 0.7:
             prediction_text = "Palm"
+            mute()
         elif prediction_result_g[0][2] >= 0.7:
             prediction_text = "Point"
+            increase()
         else:
             prediction_text = "Sth went wrong"
+        time.sleep(1)
     else:
         prediction_text = "No hand"
 
