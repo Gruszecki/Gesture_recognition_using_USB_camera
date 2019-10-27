@@ -80,25 +80,17 @@ def nn_go():
     # Hand recognition training
     print("Preparing trainings...")
 
-    layer_conv2d_2_1 = keras.layers.Conv2D(8, (8, 8), input_shape=(38, 38, 1), activation=tf.nn.relu)
-    layer_conv2d_2_2 = keras.layers.Conv2D(16, (8, 8), activation=tf.nn.relu)
-    layer_maxpooling2d_2_1 = keras.layers.MaxPooling2D(pool_size=(8, 8))
-    layer_maxpooling2d_2_2 = keras.layers.MaxPooling2D(pool_size=(2, 2))
-    layer_maxpooling2d_2_3 = keras.layers.MaxPooling2D(pool_size=(1, 1))
+    layer_conv2d_2_1 = keras.layers.Conv2D(2, (19, 19), input_shape=(38, 38, 1), activation=tf.nn.relu)
+    layer_maxpooling2d_2_2 = keras.layers.MaxPooling2D(pool_size=(1, 1))
     layer_flatten_2_1 = keras.layers.Flatten()
-    layer_dense_2_1 = keras.layers.Dense(50, activation=tf.nn.relu)
-    layer_dense_2_2 = keras.layers.Dense(20, activation=tf.nn.relu)
+    layer_dense_2_1 = keras.layers.Dense(10, activation=tf.nn.relu)
     layer_dense_2_3 = keras.layers.Dense(2, activation=tf.nn.softmax)
 
     model_h = keras.Sequential([
         layer_conv2d_2_1,
-        layer_conv2d_2_2,
-        layer_maxpooling2d_2_1,
         layer_maxpooling2d_2_2,
-        layer_maxpooling2d_2_3,
         layer_flatten_2_1,
         layer_dense_2_1,
-        layer_dense_2_2,
         layer_dense_2_3
     ])
 
@@ -111,21 +103,17 @@ def nn_go():
     ##############################################################
     # Gesture recognition training
 
-    layer_conv2d_1 = keras.layers.Conv2D(8, (4, 4), input_shape=(38, 38, 1), activation=tf.nn.relu)
-    layer_conv2d_2 = keras.layers.Conv2D(4, (4, 4), activation=tf.nn.relu)
+    layer_conv2d_1 = keras.layers.Conv2D(2, (19, 19), input_shape=(38, 38, 1), activation=tf.nn.relu)
     layer_maxpooling2d = keras.layers.MaxPooling2D(pool_size=(2, 2))
     layer_flatten = keras.layers.Flatten()
-    layer_dense_1 = keras.layers.Dense(50, activation=tf.nn.relu)
-    layer_dense_2 = keras.layers.Dense(50, activation=tf.nn.relu)
+    layer_dense_4 = keras.layers.Dense(10, activation=tf.nn.relu)
     layer_dense_3 = keras.layers.Dense(3, activation=tf.nn.softmax)
 
     model_g = keras.Sequential([
         layer_conv2d_1,
-        layer_conv2d_2,
         layer_maxpooling2d,
         layer_flatten,
-        layer_dense_1,
-        layer_dense_2,
+        layer_dense_4,
         layer_dense_3
     ])
 
@@ -138,8 +126,8 @@ def nn_go():
 
     ########################### T R A I N I N G #######################################
 
-    model_h.fit(train_hand, train_hand_labels, epochs=3)
-    model_g.fit(train_images, train_images_labels, epochs=1)
+    model_h.fit(train_hand, train_hand_labels, epochs=5)
+    model_g.fit(train_images, train_images_labels, epochs=5)
 
     # Saving entire model to a HDF5 file
     # model_h.save('F:\\PyCharm 5.0.4\\PROJEKTY\\ExternalCamera\\model_h.h5')

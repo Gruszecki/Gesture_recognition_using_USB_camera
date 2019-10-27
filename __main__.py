@@ -5,15 +5,14 @@ from tensorflow import keras
 from pycaw.pycaw import AudioUtilities, ISimpleAudioVolume
 import time
 
-# nn = __import__('neural_network')
-# gi = __import__('gallery_interface')
+nn = __import__('neural_network')
 
 # Generating models
-# model_h, model_g = nn.nn_go()
+model_h, model_g = nn.nn_go()
 
 # Recreating saved models, including weights and optimizer
-model_h = keras.models.load_model('F:\\PyCharm 5.0.4\\PROJEKTY\\ExternalCamera\\model_h_three_gest.h5')
-model_g = keras.models.load_model('F:\\PyCharm 5.0.4\\PROJEKTY\\ExternalCamera\\model_g_three_gest.h5')
+# model_h = keras.models.load_model('F:\\PyCharm 5.0.4\\PROJEKTY\\ExternalCamera\\model_h_three_gest.h5')
+# model_g = keras.models.load_model('F:\\PyCharm 5.0.4\\PROJEKTY\\ExternalCamera\\model_g_three_gest.h5')
 
 # Create an object.
 video = cv2.VideoCapture(0)
@@ -66,7 +65,7 @@ while True:
     frame_extract.resize([1, 38, 38, 1])
     prediction_result_h = model_h.predict(frame_extract)  # Prediction for hand/no hand
 
-    if prediction_result_h[0][1] >= 0.75:
+    if prediction_result_h[0][0] >= 0.75:
         prediction_result_g = model_g.predict(frame_extract)  # Prediction for gestures
         if prediction_result_g[0][0] >= 0.7:
             prediction_text = "Fist"
@@ -79,7 +78,7 @@ while True:
             increase()
         else:
             prediction_text = "Sth went wrong"
-        time.sleep(1)
+        time.sleep(0.5)
     else:
         prediction_text = "No hand"
 
