@@ -69,16 +69,16 @@ while True:
         prediction_result_g = model_g.predict(frame_extract)  # Prediction for gestures
         if prediction_result_g[0][0] >= 0.7:
             prediction_text = "Fist"
-            decrease()
+            #decrease()
         elif prediction_result_g[0][1] >= 0.7:
             prediction_text = "Palm"
-            mute()
+            #mute()
         elif prediction_result_g[0][2] >= 0.7:
             prediction_text = "Point"
-            increase()
+            #increase()
         else:
             prediction_text = "Sth went wrong"
-        time.sleep(0.5)
+        #time.sleep(1)
     else:
         prediction_text = "No hand"
 
