@@ -7,6 +7,8 @@ import cv2
 import re
 
 
+# os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+
 def atoi(text):
     return int(text) if text.isdigit() else text
 
@@ -16,19 +18,19 @@ def natural_keys(text):
 
 def nn_go():
     print("Preparing arrays...")
-    train_images_folder_path = "C:\\Users\\wojte\\Desktop\\Praca_inz\\train_images"
+    train_images_folder_path = "D:\\Praca_inz\\train_images"
     train_images_paths = glob(os.path.join(train_images_folder_path, "*.jpg"))
     train_images = np.array([[[0] * 38] * 38] * len(train_images_paths), dtype=np.uint8)
     train_images_labels = np.array([0] * len(train_images_paths))
 
-    train_noise_folder_path = "C:\\Users\\wojte\\Desktop\\Praca_inz\\train_noise"
+    train_noise_folder_path = "D:\\Praca_inz\\train_noise"
     train_noise_paths = glob(os.path.join(train_noise_folder_path, "*.jpg"))
     train_noise = np.array([[[0]*38]*38]*len(train_noise_paths), dtype=np.uint8)
 
     train_hand = np.array([[[0]*38]*38]*(len(train_images_paths) + len(train_noise_paths)), dtype=np.uint8)
     train_hand_labels = np.array([0]*(len(train_images_paths) + len(train_noise_paths)))
 
-    img_path = "C:\\Users\\wojte\\Desktop\\Praca_inz\\test_images"
+    img_path = "D:\\Praca_inz\\test_images"
     img_paths = glob(os.path.join(img_path, "*.jpg"))
     img_test = np.array([[[0] * 38] * 38] * 9, dtype=np.uint8)
 
@@ -142,8 +144,8 @@ def nn_go():
     model_g.fit(train_images, train_images_labels, epochs=3)
 
     # Saving entire model to a HDF5 file
-    # model_h.save('F:\\PyCharm 5.0.4\\PROJEKTY\\ExternalCamera\\model_h.h5')
-    # model_g.save('F:\\PyCharm 5.0.4\\PROJEKTY\\ExternalCamera\\model_g.h5')
+    # model_h.save('C:\\Apps\\PyCharm Community Edition 2019.2.4\\PROJEKTY\Gesture_recognition_using_USB_camera\\model_h_plain_background.h5')
+    # model_g.save('C:\\Apps\\PyCharm Community Edition 2019.2.4\\PROJEKTY\Gesture_recognition_using_USB_camera\\model_g_plain_background.h5')
 
     ############################# Summary ####################################
 

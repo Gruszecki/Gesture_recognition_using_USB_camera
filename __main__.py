@@ -1,6 +1,7 @@
 from __future__ import print_function
 import cv2
 import numpy as np
+import tensorflow as tf
 from tensorflow import keras
 from pycaw.pycaw import AudioUtilities, ISimpleAudioVolume
 import time
@@ -8,11 +9,11 @@ import time
 nn = __import__('neural_network')
 
 # Generating models
-model_h, model_g = nn.nn_go()
+# model_h, model_g = nn.nn_go()
 
 # Recreating saved models, including weights and optimizer
-# model_h = keras.models.load_model('F:\\PyCharm 5.0.4\\PROJEKTY\\ExternalCamera\\model_h_three_gest.h5')
-# model_g = keras.models.load_model('F:\\PyCharm 5.0.4\\PROJEKTY\\ExternalCamera\\model_g_three_gest.h5')
+model_h = keras.models.load_model('C:\\Apps\\PyCharm Community Edition 2019.2.4\\PROJEKTY\Gesture_recognition_using_USB_camera\\model_h_plain_background.h5')
+model_g = keras.models.load_model('C:\\Apps\\PyCharm Community Edition 2019.2.4\\PROJEKTY\Gesture_recognition_using_USB_camera\\model_g_plain_background.h5')
 
 # Create an object.
 video = cv2.VideoCapture(0)
@@ -63,6 +64,7 @@ while True:
 
     frame_extract = cv2.getRectSubPix(frame_out, (38, 38), (80, 60))  # Extracting frame
     frame_extract.resize([1, 38, 38, 1])
+    frame_extract = tf.cast(frame_extract, tf.float32)
     prediction_result_h = model_h.predict(frame_extract)  # Prediction for hand/no hand
 
     if prediction_result_h[0][0] >= 0.75:
