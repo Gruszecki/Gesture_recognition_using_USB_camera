@@ -7,7 +7,7 @@ import cv2
 import re
 
 
-# os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 def atoi(text):
     return int(text) if text.isdigit() else text

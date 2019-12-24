@@ -23,30 +23,37 @@ gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
 height_len = len(gray)  # Height of input image
 width_len = len(gray[0])  # Width of input image
-factor = 4  # Factor used to change dimension
+factor = 1  # Factor used to change dimension
 
 frame_out = np.array([[0] * (int(width_len / factor))] * int((height_len / factor)),
                      dtype=np.uint8)  # Table with new dimension
 
 def increase():
-    print("Volume increasing.")
+    global prediction_text
     for session in sessions:
         volume = session._ctl.QueryInterface(ISimpleAudioVolume)
         if volume.GetMasterVolume() < 0.9:
             volume.SetMasterVolume(volume.GetMasterVolume() + 0.1, None)
+    prediction_text = "Volume up: " + str(round(volume.GetMasterVolume()*100)) + "%"
+    return volume.GetMasterVolume()
 
 def decrease():
-    print("Volume decreasing.")
+    global prediction_text
     for session in sessions:
         volume = session._ctl.QueryInterface(ISimpleAudioVolume)
         if volume.GetMasterVolume() > 0.1:
             volume.SetMasterVolume(volume.GetMasterVolume() - 0.1, None)
+    prediction_text = "Volume down: " + str(round(volume.GetMasterVolume() * 100)) + "%"
+    return volume.GetMasterVolume()
 
 def mute():
-    print("Mute ON/OFF")
+    global prediction_text
     for session in sessions:
         volume = session._ctl.QueryInterface(ISimpleAudioVolume)
         volume.SetMute(not volume.GetMute(), None)
+    if volume.GetMute() == 1: prediction_text = "Mute ON"
+    else: prediction_text = "Mute OFF"
+    return volume.GetMute()
 
 
 while True:
@@ -60,27 +67,30 @@ while True:
             frame_out[int((i / factor))][int(j / factor)] = gray[i][j]
 
     cv2.rectangle(frame_out, (0, 0), (60, 15), 0, -1)
-    cv2.rectangle(frame_out, (60, 40), (100, 80), 255, 1)
+    cv2.rectangle(frame_out, (int(width_len/factor/2)-int(76/factor), int(height_len/factor/2)-int(76/factor)), (int(width_len/factor/2)+int(76/factor), int(height_len/factor/2)+int(76/factor)), 255, 1)
 
-    frame_extract = cv2.getRectSubPix(frame_out, (38, 38), (80, 60))  # Extracting frame
-    frame_extract.resize([1, 38, 38, 1])
-    frame_extract = tf.cast(frame_extract, tf.float32)
-    prediction_result_h = model_h.predict(frame_extract)  # Prediction for hand/no hand
+    frame_resized = np.array([[0] * 38] * 38, dtype=np.uint8)
+    frame_extract = cv2.getRectSubPix(gray, (152, 152), (int(width_len/2), int(height_len/2)))  # Extracting frame
+    for i in range(0, 152, 4):
+        for j in range(0, 152, 4):
+            frame_resized[int(i/4)][int(j/4)] = frame_extract[i][j]
+    frame_resized.resize([1, 38, 38, 1])
+    frame_resized = tf.cast(frame_resized, tf.float32)
+    prediction_result_h = model_h.predict(frame_resized)  # Prediction for hand/no hand
 
-    if prediction_result_h[0][0] >= 0.75:
-        prediction_result_g = model_g.predict(frame_extract)  # Prediction for gestures
+    if prediction_result_h[0][0] >= 0.7:
+        prediction_result_g = model_g.predict(frame_resized)  # Prediction for gestures
         if prediction_result_g[0][0] >= 0.7:
-            prediction_text = "Fist"
-            #decrease()
+            # Fist
+            print("%.2f" % decrease())
         elif prediction_result_g[0][1] >= 0.7:
-            prediction_text = "Palm"
-            #mute()
+            # Palm
+            print("%.2f" % increase())
         elif prediction_result_g[0][2] >= 0.7:
-            prediction_text = "Point"
-            #increase()
+            # Point
+            print("%d" % mute())
         else:
             prediction_text = "Sth went wrong"
-        #time.sleep(1)
     else:
         prediction_text = "No hand"
 
@@ -92,6 +102,8 @@ while True:
 
     if key == ord('q'):
         break
+
+    time.sleep(1)
 
 # Shutdown the camera
 video.release()
