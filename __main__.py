@@ -15,15 +15,16 @@ nn = __import__('neural_network')
 model_h = keras.models.load_model('C:\\Apps\\PyCharm Community Edition 2019.2.4\\PROJEKTY\Gesture_recognition_using_USB_camera\\model_h_plain_background.h5')
 model_g = keras.models.load_model('C:\\Apps\\PyCharm Community Edition 2019.2.4\\PROJEKTY\Gesture_recognition_using_USB_camera\\model_g_plain_background.h5')
 
-# Create an object.
-video = cv2.VideoCapture(0)
+gesture_history = [-1] * 10
+gesture_history_counter = 0
 
+video = cv2.VideoCapture(0)
 check, frame = video.read()
 gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
 height_len = len(gray)  # Height of input image
 width_len = len(gray[0])  # Width of input image
-factor = 1  # Factor used to change dimension
+factor = 2  # Factor used to change dimension
 
 frame_out = np.array([[0] * (int(width_len / factor))] * int((height_len / factor)),
                      dtype=np.uint8)  # Table with new dimension
@@ -35,7 +36,7 @@ def increase():
         if volume.GetMasterVolume() < 0.9:
             volume.SetMasterVolume(volume.GetMasterVolume() + 0.1, None)
     prediction_text = "Volume up: " + str(round(volume.GetMasterVolume()*100)) + "%"
-    return volume.GetMasterVolume()
+    return "Volume up: " + str(round(volume.GetMasterVolume()*100)) + "%"
 
 def decrease():
     global prediction_text
@@ -44,7 +45,7 @@ def decrease():
         if volume.GetMasterVolume() > 0.1:
             volume.SetMasterVolume(volume.GetMasterVolume() - 0.1, None)
     prediction_text = "Volume down: " + str(round(volume.GetMasterVolume() * 100)) + "%"
-    return volume.GetMasterVolume()
+    return "Volume down: " + str(round(volume.GetMasterVolume()*100)) + "%"
 
 def mute():
     global prediction_text
@@ -53,7 +54,23 @@ def mute():
         volume.SetMute(not volume.GetMute(), None)
     if volume.GetMute() == 1: prediction_text = "Mute ON"
     else: prediction_text = "Mute OFF"
-    return volume.GetMute()
+    return "Mute: " + str(volume.GetMute())
+
+def add_n_check_history(value):
+    global gesture_history, gesture_history_counter
+
+    if gesture_history_counter >= len(gesture_history):
+        gesture_history_counter = 0
+
+    gesture_history[gesture_history_counter] = value
+    gesture_history_counter += 1
+
+    for i in gesture_history:
+        if i is not value: return False
+
+    gesture_history = [-1] * 10
+
+    return True
 
 
 while True:
@@ -66,8 +83,10 @@ while True:
         for j in range(0, width_len, factor):
             frame_out[int((i / factor))][int(j / factor)] = gray[i][j]
 
-    cv2.rectangle(frame_out, (0, 0), (60, 15), 0, -1)
+    cv2.rectangle(frame_out, (0, 0), (120, 25), 0, -1)
     cv2.rectangle(frame_out, (int(width_len/factor/2)-int(76/factor), int(height_len/factor/2)-int(76/factor)), (int(width_len/factor/2)+int(76/factor), int(height_len/factor/2)+int(76/factor)), 255, 1)
+    cv2.rectangle(frame_out, (0, int(height_len/factor)-15), (120, int(height_len/factor)), 0, -1)
+    cv2.putText(frame_out, "Press 'q' for quit", (0, int(height_len/factor)-13), fontFace=cv2.FONT_HERSHEY_PLAIN, fontScale=0.9, color=255, thickness=1)
 
     frame_resized = np.array([[0] * 38] * 38, dtype=np.uint8)
     frame_extract = cv2.getRectSubPix(gray, (152, 152), (int(width_len/2), int(height_len/2)))  # Extracting frame
@@ -78,23 +97,24 @@ while True:
     frame_resized = tf.cast(frame_resized, tf.float32)
     prediction_result_h = model_h.predict(frame_resized)  # Prediction for hand/no hand
 
-    if prediction_result_h[0][0] >= 0.7:
+    if prediction_result_h[0][0] >= 0.75:
         prediction_result_g = model_g.predict(frame_resized)  # Prediction for gestures
         if prediction_result_g[0][0] >= 0.7:
             # Fist
-            print("%.2f" % decrease())
+            if add_n_check_history(0): decrease()
         elif prediction_result_g[0][1] >= 0.7:
             # Palm
-            print("%.2f" % increase())
-        elif prediction_result_g[0][2] >= 0.7:
+            if add_n_check_history(1): increase()
+        elif prediction_result_g[0][2] >= 0.65:
             # Point
-            print("%d" % mute())
+            if add_n_check_history(2): mute()
         else:
             prediction_text = "Sth went wrong"
     else:
-        prediction_text = "No hand"
+        add_n_check_history(-1)
+        prediction_text = ""
 
-    cv2.putText(frame_out, prediction_text, (0, 10), fontFace=cv2.FONT_HERSHEY_PLAIN, fontScale=0.9, color=255,
+    cv2.putText(frame_out, prediction_text, (0, 18), fontFace=cv2.FONT_HERSHEY_PLAIN, fontScale=1.4, color=255,
                 thickness=1)
 
     cv2.imshow("Hello World!", frame_out)  # Show the frame
@@ -102,8 +122,6 @@ while True:
 
     if key == ord('q'):
         break
-
-    time.sleep(1)
 
 # Shutdown the camera
 video.release()
