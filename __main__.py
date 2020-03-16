@@ -4,7 +4,6 @@ import numpy as np
 import tensorflow as tf
 from tensorflow import keras
 from pycaw.pycaw import AudioUtilities, ISimpleAudioVolume
-import time
 
 nn = __import__('neural_network')
 
@@ -12,22 +11,27 @@ nn = __import__('neural_network')
 # model_h, model_g = nn.nn_go()
 
 # Recreating saved models, including weights and optimizer
-model_h = keras.models.load_model('C:\\Apps\\PyCharm Community Edition 2019.2.4\\PROJEKTY\Gesture_recognition_using_USB_camera\\model_h_plain_background.h5')
-model_g = keras.models.load_model('C:\\Apps\\PyCharm Community Edition 2019.2.4\\PROJEKTY\Gesture_recognition_using_USB_camera\\model_g_plain_background.h5')
+model_h = keras.models.load_model('C:\\Apps\\PyCharm Community Edition 2019.3.3\\PROJEKTY\\Gesture_recognition_using_USB_camera\\model_h_plain_background.h5')
+model_g = keras.models.load_model('C:\\Apps\\PyCharm Community Edition 2019.3.3\\PROJEKTY\\Gesture_recognition_using_USB_camera\\model_g_plain_background.h5')
 
+# Gesture history init
 gesture_history = [-1] * 10
 gesture_history_counter = 0
 
+# Stream creating
 video = cv2.VideoCapture(0)
 check, frame = video.read()
 gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
+# Stream properties
 height_len = len(gray)  # Height of input image
 width_len = len(gray[0])  # Width of input image
 factor = 2  # Factor used to change dimension
 
 frame_out = np.array([[0] * (int(width_len / factor))] * int((height_len / factor)),
                      dtype=np.uint8)  # Table with new dimension
+
+prediction_text = ""
 
 def increase():
     global prediction_text
