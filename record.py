@@ -1,4 +1,3 @@
-import numpy as np
 import cv2
 
 cap = cv2.VideoCapture(0)
@@ -16,7 +15,7 @@ while cap.isOpened():
         cv2.rectangle(frame, (int(width_len/2)-int(height_len/6), int(height_len/3)), (int(width_len/2)+int(height_len/6), int(height_len/3)*2), (0,0,255), 3)
         cv2.imshow('Recording', frame)
 
-        if cv2.waitKey(1) & 0xFF == ord('q'):
+        if cv2.waitKey(1) == ord('q'):
             break
     else:
         break
