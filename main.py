@@ -4,26 +4,29 @@ import numpy as np
 import tensorflow as tf
 from tensorflow import keras
 from pycaw.pycaw import AudioUtilities, ISimpleAudioVolume
+import csv
 
 nn = __import__('neural_network')
 
 import_models_flag = 1      # 1 for import, 0 for generate
 sil_flag = 1                # 1 for sil, 0 for live
-sil_dir = "output.avi"
+sil_dir = "output_final.mp4"
 
 if import_models_flag:
     # Recreating saved models, including weights and optimizer
     model_h = keras.models.load_model(
-        'C:\\Apps\\PyCharm Community Edition 2019.3.3\\PROJEKTY\\Gesture_recognition_using_USB_camera\\model_h_plain_background.h5')
+        'C:\\Apps\\PyCharm Community Edition 2019.3.3\\PROJEKTY\\Gesture_recognition_using_USB_camera\\model_h_monochrome.h5')
     model_g = keras.models.load_model(
-        'C:\\Apps\\PyCharm Community Edition 2019.3.3\\PROJEKTY\\Gesture_recognition_using_USB_camera\\model_g_plain_background.h5')
+        'C:\\Apps\\PyCharm Community Edition 2019.3.3\\PROJEKTY\\Gesture_recognition_using_USB_camera\\model_g_monochrome.h5')
 else:
     # Generating models
     model_h, model_g = nn.nn_go()
 
 # Gesture history init
-gesture_history = [-1] * 10
+gesture_history = [-1] * 20
 gesture_history_counter = 0
+predicted_handpose = ""
+predicted_gesture = ""
 
 def increase():
     global prediction_text
@@ -64,7 +67,7 @@ def add_n_check_history(value):
     for i in gesture_history:
         if i is not value: return False
 
-    gesture_history = [-1] * 10
+    gesture_history = [-1] * len(gesture_history)
 
     return True
 
@@ -73,19 +76,28 @@ def video_source(sil_flag):
     else: return cv2.VideoCapture(0)
 
 def check_gesture(frame_resized):
-    global prediction_text
+    global prediction_text, predicted_handpose, predicted_gesture
     prediction_result_h = model_h.predict(frame_resized)  # Prediction for hand/no hand
-    if prediction_result_h[0][0] >= 0.75:
+    if prediction_result_h[0][0] >= 0.8:
         prediction_result_g = model_g.predict(frame_resized)  # Prediction for gestures
-        if prediction_result_g[0][0] >= 0.7:
+        if prediction_result_g[0][0] >= 0.5:
             # Fist
-            if add_n_check_history(0): decrease()
-        elif prediction_result_g[0][1] >= 0.7:
+            predicted_handpose = 'Fist'
+            if add_n_check_history(0):
+                predicted_gesture = 'Fist'
+                decrease()
+        elif prediction_result_g[0][1] >= 0.5:
             # Palm
-            if add_n_check_history(1): increase()
-        elif prediction_result_g[0][2] >= 0.65:
+            predicted_handpose = 'Palm'
+            if add_n_check_history(1):
+                predicted_gesture = 'Palm'
+                increase()
+        elif prediction_result_g[0][2] >= 0.5:
             # Point
-            if add_n_check_history(2): mute()
+            predicted_handpose = 'One finger'
+            if add_n_check_history(2):
+                predicted_gesture = 'One finger'
+                mute()
         else:
             prediction_text = "Sth went wrong"
     else:
@@ -132,25 +144,33 @@ if sil_flag:
         stream_holder.append([frame_out, gray])
         check, frame = video.read()
 
-    for frame_holder in stream_holder:
-        sessions = AudioUtilities.GetAllSessions()
+    with open('sil_result.csv', 'w', newline='') as file:
+        filewriter = csv.writer(file, delimiter='\t')
+        filewriter.writerow(['Numer klatki', 'Handpose', 'Gest (SIL)', 'Gest (etykieta)'])
+        counter = 1
+        for frame_holder in stream_holder:
+            sessions = AudioUtilities.GetAllSessions()
 
-        cv2.rectangle(frame_holder[1], (0, 0), (120, 25), 0, -1)
-        cv2.rectangle(frame_holder[1], (int(width_len/2)-int(height_len/6), int(height_len/3)), (int(width_len/2)+int(height_len/6), int(height_len/3)*2), 255, 1)
-        cv2.rectangle(frame_holder[1], (0, int(height_len)-15), (120, int(height_len)), 0, -1)
-        cv2.putText(frame_holder[1], "Press 'q' for quit", (0, int(height_len)-13), fontFace=cv2.FONT_HERSHEY_PLAIN, fontScale=0.9, color=255, thickness=1)
+            cv2.rectangle(frame_holder[1], (0, 0), (120, 25), 0, -1)
+            cv2.rectangle(frame_holder[1], (int(width_len/2)-int(height_len/6), int(height_len/3)), (int(width_len/2)+int(height_len/6), int(height_len/3)*2), 255, 1)
+            cv2.rectangle(frame_holder[1], (0, int(height_len)-15), (120, int(height_len)), 0, -1)
+            cv2.putText(frame_holder[1], "Press 'q' for quit", (0, int(height_len)-13), fontFace=cv2.FONT_HERSHEY_PLAIN, fontScale=0.9, color=255, thickness=1)
 
-        frame_resized = resize_image_38(frame_holder[1])
-        check_gesture(frame_resized)
+            frame_resized = resize_image_38(frame_holder[1])
+            check_gesture(frame_resized)
+            filewriter.writerow([counter, predicted_handpose, predicted_gesture])
+            predicted_handpose = ''
+            predicted_gesture = ''
+            counter += 1
 
-        cv2.putText(frame_holder[1], prediction_text, (0, 18), fontFace=cv2.FONT_HERSHEY_PLAIN, fontScale=1.4, color=255,
-                    thickness=1)
+            cv2.putText(frame_holder[1], prediction_text, (0, 18), fontFace=cv2.FONT_HERSHEY_PLAIN, fontScale=1.4, color=255,
+                        thickness=1)
 
-        cv2.imshow("Hello World!", frame_holder[1])
-        key = cv2.waitKey(1)  # For playing
+            cv2.imshow("Hello World!", frame_holder[1])
+            key = cv2.waitKey(1)  # For playing
 
-        if key == ord('q'):
-            break
+            if key == ord('q'):
+                break
 else:
     while True:
         sessions = AudioUtilities.GetAllSessions()
